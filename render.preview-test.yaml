@@ -1,0 +1,29 @@
+previews:
+  generation: automatic
+
+buildSources:
+  - name: django-bs-bp
+    git:
+      repo: https://github.com/brooke-render/django-mm2ewb9s
+      branch: main
+      runtime: python
+      region: oregon
+      buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input && date -u +%s%N > build-stamp.txt
+      envVars:
+        - key: BUILD_MARKER
+          value: blueprint
+        - key: BUILD_SECRET
+          generateValue: true
+
+services:
+  - type: web
+    name: bs-bp-web
+    plan: starter
+    region: oregon
+    buildSource: django-bs-bp
+    startCommand: python -m gunicorn mysite.asgi:application -k uvicorn.workers.UvicornWorker
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
